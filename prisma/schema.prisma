@@ -1,0 +1,179 @@
+// File: prisma/schema.prisma
+
+// 1. Konfigurasi Datasource & Generator
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 2. Definisi Model (Tabel) Database
+
+// --- MODEL LAMA (dengan beberapa penyesuaian) ---
+model User {
+  id                 String             @id @default(cuid())
+  name               String
+  email              String             @unique
+  hashedPassword     String
+  role               Role               @default(KASIR)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  ordersUpdated      Order[]            @relation("UserUpdates")
+  materialLogsLogged MaterialUsageLog[]
+}
+
+model Customer {
+  id      String  @id @default(cuid())
+  name    String
+  phone   String? @unique
+  address String?
+  orders  Order[]
+}
+
+model Order {
+  id                String        @id @default(cuid())
+  orderNumber       String        @unique
+  orderDate         DateTime      @default(now())
+  dueDate           DateTime?
+  totalAmount       Float
+  paidAmount        Float         @default(0)
+  paymentStatus     PaymentStatus @default(BELUM_BAYAR)
+  paymentMethod     String?
+  productionStatus  String
+  notes             String?
+  updatedById       String?
+  updatedByUser     User?         @relation("UserUpdates", fields: [updatedById], references: [id])
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  items             OrderItem[]
+  customer          Customer      @relation(fields: [customerId], references: [id])
+  customerId        String
+}
+
+model OrderItem {
+  id            String             @id @default(cuid())
+  orderId       String
+  order         Order              @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productType   String
+  quantity      Float
+  unitPrice     Float
+  details       Json // Kolom ini akan menyimpan data dari form dinamis
+  materialUsage MaterialUsageLog[]
+}
+
+// ... (Model Inventaris, Supplier, Promosi, Log Aktivitas, dll. tetap sama) ...
+model InventoryItem {
+  id          String             @id @default(cuid())
+  name        String
+  sku         String?            @unique
+  quantity    Float
+  unit        String
+  updatedAt   DateTime           @updatedAt
+  usageLogs   MaterialUsageLog[]
+}
+
+model Supplier {
+  id            String         @id @default(cuid())
+  name          String         @unique
+  contactPerson String?
+  phone         String?
+  address       String?
+  receipts      GoodsReceipt[]
+}
+
+model GoodsReceipt {
+  id            String   @id @default(cuid())
+  receiptNumber String   @unique
+  receiptDate   DateTime @default(now())
+  supplierId    String
+  supplier      Supplier @relation(fields: [supplierId], references: [id])
+  items         Json
+  totalAmount   Float?
+  notes         String?
+}
+
+model ProductionStatus {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Promotion {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  type        String
+  value       Float
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  message   String
+  link      String?
+  type      String
+  createdAt DateTime @default(now())
+}
+
+model MaterialUsageLog {
+  id              String        @id @default(cuid())
+  orderItemId     String
+  orderItem       OrderItem     @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  inventoryItemId String
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
+  quantityUsed    Float
+  loggedById      String
+  loggedBy        User          @relation(fields: [loggedById], references: [id])
+  createdAt       DateTime      @default(now())
+}
+
+
+// --- MODEL BARU UNTUK PEMBANGUN FORMULIR DINAMIS ---
+model ProductType {
+  id               String            @id @default(cuid())
+  name             String            @unique
+  description      String?
+  fieldDefinitions FieldDefinition[] // Relasi: satu jenis produk punya banyak definisi kolom
+  createdAt        DateTime          @default(now())
+}
+
+model FieldDefinition {
+  id            String    @id @default(cuid())
+  label         String    // "Bahan Kain"
+  name          String    // "bahan" (untuk disimpan di database)
+  type          FieldType // Enum: TEXT, NUMBER, DROPDOWN, FILE, TEXTAREA
+  options       String[]  // Array string untuk pilihan dropdown, e.g., ["Merah", "Biru"]
+  placeholder   String?   // "Contoh: Cotton Combed 30s"
+  isRequired    Boolean   @default(false)
+  order         Int       @default(0) // Untuk urutan tampilan di formulir
+  
+  productTypeId String
+  productType   ProductType @relation(fields: [productTypeId], references: [id], onDelete: Cascade)
+}
+
+
+// --- ENUM (Tipe Pilihan Tetap) ---
+enum Role {
+  ADMIN
+  PRODUKSI
+  KASIR
+}
+
+enum PaymentStatus {
+  BELUM_BAYAR
+  DP
+  LUNAS
+}
+
+enum FieldType {
+  TEXT
+  NUMBER
+  TEXTAREA
+  DROPDOWN
+  FILE
+}
