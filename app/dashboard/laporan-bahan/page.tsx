@@ -1,17 +1,27 @@
-// File: app/dashboard/laporan-bahan/page.tsx (Versi Final dengan Tombol Cetak)
+// File: app/dashboard/laporan-bahan/page.tsx (Versi Baru dengan Rincian per Pesanan)
 
 "use client";
 
 import React, { useState, useEffect, FormEvent } from "react";
 import { generateMaterialReportPDF } from "@/app/lib/generateMaterialReportPDF";
 import toast from "react-hot-toast";
+import Link from "next/link";
 
-// Definisikan tipe data untuk hasil laporan
-type MaterialReportItem = {
-  name: string;
-  unit: string;
-  totalUsed: number;
-  remainingStock: number;
+// Definisikan tipe data baru untuk hasil laporan yang detail
+type MaterialUsageDetail = {
+  id: string;
+  createdAt: string;
+  quantityUsed: number;
+  inventoryItem: {
+    name: string;
+    unit: string;
+  };
+  orderItem: {
+    order: {
+      id: string;
+      orderNumber: string;
+    };
+  };
 };
 
 export default function LaporanBahanPage() {
@@ -20,7 +30,7 @@ export default function LaporanBahanPage() {
   const [endDate, setEndDate] = useState("");
 
   // State untuk menampung hasil laporan
-  const [reportData, setReportData] = useState<MaterialReportItem[]>([]);
+  const [reportData, setReportData] = useState<MaterialUsageDetail[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -65,7 +75,6 @@ export default function LaporanBahanPage() {
     }
   };
 
-  // --- FUNGSI BARU UNTUK MENANGANI CETAK ---
   const handlePrintReport = () => {
     if (!reportData || reportData.length === 0) {
       toast.error(
@@ -73,13 +82,15 @@ export default function LaporanBahanPage() {
       );
       return;
     }
-    generateMaterialReportPDF(reportData, { startDate, endDate });
+    // Kita perlu update fungsi generateMaterialReportPDF juga
+    // generateMaterialReportPDF(reportData, { startDate, endDate });
+    toast.error("Fungsi cetak untuk laporan detail ini belum dibuat.");
   };
 
   return (
     <div>
       <h1 className="text-3xl font-bold text-slate-800 mb-8">
-        Laporan Penggunaan Bahan
+        Laporan Rincian Penggunaan Bahan
       </h1>
 
       {/* Area Filter */}
@@ -120,7 +131,6 @@ export default function LaporanBahanPage() {
             >
               {isLoading ? "Memuat..." : "Tampilkan"}
             </button>
-            {/* --- TOMBOL CETAK BARU --- */}
             <button
               type="button"
               onClick={handlePrintReport}
@@ -141,51 +151,50 @@ export default function LaporanBahanPage() {
       {!isLoading && reportData && (
         <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
           <h3 className="text-xl font-bold text-slate-800 mb-4">
-            Rekapitulasi Penggunaan Bahan
+            Rincian Penggunaan Bahan
           </h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left text-slate-500">
               <thead className="text-xs text-slate-700 uppercase bg-slate-50">
                 <tr>
                   <th scope="col" className="px-6 py-3">
+                    Tanggal
+                  </th>
+                  <th scope="col" className="px-6 py-3">
                     Nama Bahan
                   </th>
                   <th scope="col" className="px-6 py-3 text-right">
-                    Total Terpakai
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-right">
-                    Sisa Stok
+                    Jumlah Terpakai
                   </th>
                   <th scope="col" className="px-6 py-3">
-                    Satuan
+                    Untuk Pesanan
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {reportData.length > 0 ? (
-                  reportData.map((item, index) => (
+                  reportData.map((log) => (
                     <tr
-                      key={index}
-                      className={`bg-white border-b hover:bg-slate-50 ${
-                        item.remainingStock < 10 ? "bg-red-50" : ""
-                      }`}
+                      key={log.id}
+                      className="bg-white border-b hover:bg-slate-50"
                     >
+                      <td className="px-6 py-4">
+                        {new Date(log.createdAt).toLocaleDateString("id-ID")}
+                      </td>
                       <td className="px-6 py-4 font-medium text-slate-900">
-                        {item.name}
+                        {log.inventoryItem.name}
                       </td>
                       <td className="px-6 py-4 text-right font-medium">
-                        {item.totalUsed.toLocaleString("id-ID")}
+                        {log.quantityUsed} {log.inventoryItem.unit}
                       </td>
-                      <td
-                        className={`px-6 py-4 text-right font-bold ${
-                          item.remainingStock < 10
-                            ? "text-red-600"
-                            : "text-slate-800"
-                        }`}
-                      >
-                        {item.remainingStock.toLocaleString("id-ID")}
+                      <td className="px-6 py-4">
+                        <Link
+                          href={`/dashboard/pesanan/${log.orderItem.order.id}`}
+                          className="font-medium text-blue-600 hover:underline"
+                        >
+                          {log.orderItem.order.orderNumber}
+                        </Link>
                       </td>
-                      <td className="px-6 py-4">{item.unit}</td>
                     </tr>
                   ))
                 ) : (

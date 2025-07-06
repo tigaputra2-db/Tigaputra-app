@@ -1,14 +1,23 @@
-// File: app/lib/generateMaterialReportPDF.ts (Versi Diperbarui dengan Sisa Stok)
+// File: app/lib/generateMaterialReportPDF.ts (Versi Final dengan Rekap Total)
 
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-// Definisikan tipe data yang diharapkan oleh fungsi ini
-interface MaterialReportItem {
-  name: string;
-  unit: string;
-  totalUsed: number;
-  remainingStock: number; // <-- Tambahkan properti baru
+// Definisikan tipe data baru
+interface MaterialUsageDetail {
+  id: string;
+  createdAt: string;
+  quantityUsed: number;
+  inventoryItem: {
+    name: string;
+    unit: string;
+  };
+  orderItem: {
+    order: {
+      id: string;
+      orderNumber: string;
+    };
+  };
 }
 
 interface FilterData {
@@ -17,7 +26,7 @@ interface FilterData {
 }
 
 export const generateMaterialReportPDF = (
-  reportData: MaterialReportItem[],
+  reportData: MaterialUsageDetail[],
   filters: FilterData
 ) => {
   const doc = new jsPDF({ compress: true });
@@ -25,31 +34,54 @@ export const generateMaterialReportPDF = (
   // --- HEADER DOKUMEN ---
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text("Laporan Penggunaan & Sisa Stok Bahan", 105, 20, {
-    align: "center",
-  });
+  doc.text("Laporan Rincian Penggunaan Bahan", 105, 20, { align: "center" });
 
-  // Info Periode Laporan
   doc.setFontSize(11);
   doc.setFont("helvetica", "normal");
-  const periodText = `Periode Penggunaan: ${new Date(
-    filters.startDate
-  ).toLocaleDateString("id-ID")} - ${new Date(
-    filters.endDate
-  ).toLocaleDateString("id-ID")}`;
+  const periodText = `Periode: ${new Date(filters.startDate).toLocaleDateString(
+    "id-ID"
+  )} - ${new Date(filters.endDate).toLocaleDateString("id-ID")}`;
   doc.text(periodText, 105, 28, { align: "center" });
+  let y = 35;
+
+  // --- PERUBAHAN DI SINI: Menambahkan Rekapitulasi Total ---
+  // 1. Hitung total penggunaan untuk setiap satuan (unit)
+  const summary: { [unit: string]: number } = {};
+  reportData.forEach((log) => {
+    const unit = log.inventoryItem.unit;
+    if (!summary[unit]) {
+      summary[unit] = 0;
+    }
+    summary[unit] += log.quantityUsed;
+  });
+
+  // 2. Tampilkan rekapitulasi di PDF
+  if (Object.keys(summary).length > 0) {
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Rekapitulasi Total Penggunaan:", 15, y);
+    y += 7;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+
+    Object.entries(summary).forEach(([unit, total]) => {
+      doc.text(`- ${total.toLocaleString("id-ID")} ${unit}`, 20, y);
+      y += 6;
+    });
+  }
+
+  y += 5; // Beri sedikit spasi sebelum tabel
 
   // --- TABEL RINCIAN ---
-  // --- PERUBAHAN DI SINI: Tambahkan kolom "Sisa Stok" ---
-  const tableColumn = ["Nama Bahan", "Total Terpakai", "Sisa Stok", "Satuan"];
+  const tableColumn = ["Tanggal", "Nama Bahan", "Jumlah", "Untuk Pesanan"];
   const tableRows: any[] = [];
 
-  reportData.forEach((item) => {
+  reportData.forEach((log) => {
     const row = [
-      item.name,
-      item.totalUsed.toLocaleString("id-ID"),
-      item.remainingStock.toLocaleString("id-ID"), // <-- Tambahkan data baru
-      item.unit,
+      new Date(log.createdAt).toLocaleDateString("id-ID"),
+      log.inventoryItem.name,
+      `${log.quantityUsed} ${log.inventoryItem.unit}`,
+      log.orderItem.order.orderNumber,
     ];
     tableRows.push(row);
   });
@@ -57,17 +89,12 @@ export const generateMaterialReportPDF = (
   autoTable(doc, {
     head: [tableColumn],
     body: tableRows,
-    startY: 40,
+    startY: y, // Gunakan posisi y yang sudah disesuaikan
     theme: "grid",
     headStyles: { fillColor: [41, 128, 185] },
-    styles: { halign: "left" },
-    columnStyles: {
-      1: { halign: "right" }, // Rata kanan untuk kolom Total Terpakai
-      2: { halign: "right" }, // Rata kanan untuk kolom Sisa Stok
-    },
   });
 
   // --- SIMPAN FILE PDF ---
-  const fileName = `laporan_bahan_${filters.startDate}_sd_${filters.endDate}.pdf`;
+  const fileName = `laporan_rincian_bahan_${filters.startDate}_sd_${filters.endDate}.pdf`;
   doc.save(fileName);
 };
