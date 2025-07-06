@@ -233,7 +233,7 @@ export default function DashboardLayout({
       <Toaster position="top-center" reverseOrder={false} />
 
       <aside className="w-64 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col">
-        <div className="h-16 flex items-center gap-3 px-6 border-b border-slate-200">
+        <div className="h-18 flex items-center gap-3 px-6 border-b border-slate-200">
           <img
             src="https://wymrcotvuonhmltshbis.supabase.co/storage/v1/object/public/desain-pesanan//3plogoonly.png"
             alt="Logo Tigaputra"
