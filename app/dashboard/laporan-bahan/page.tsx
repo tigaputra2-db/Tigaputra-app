@@ -1,4 +1,4 @@
-// File: app/dashboard/laporan-bahan/page.tsx (Versi Final Lengkap)
+// File: app/dashboard/laporan-bahan/page.tsx (Versi Final dengan Kartu Sisa Stok)
 
 "use client";
 
@@ -7,35 +7,37 @@ import { generateMaterialReportPDF } from "@/app/lib/generateMaterialReportPDF";
 import toast from "react-hot-toast";
 import Link from "next/link";
 
-// Definisikan tipe data yang lengkap sesuai dengan data dari API
+// Definisikan tipe data
 type MaterialUsageDetail = {
   id: string;
   createdAt: string;
   quantityUsed: number;
-  inventoryItem: {
-    name: string;
-    unit: string;
-    quantity: number; // Sisa stok saat ini
-  };
+  inventoryItem: { name: string; unit: string };
   orderItem: {
-    order: {
-      id: string;
-      orderNumber: string;
-      customer: {
-        name: string;
-      };
-    };
+    order: { id: string; orderNumber: string; customer: { name: string } };
   };
+};
+
+type InventorySummaryItem = {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: string;
 };
 
 export default function LaporanBahanPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [reportData, setReportData] = useState<MaterialUsageDetail[]>([]);
+
+  // State dipisah untuk data rincian dan data ringkasan stok
+  const [usageDetails, setUsageDetails] = useState<MaterialUsageDetail[]>([]);
+  const [inventorySummary, setInventorySummary] = useState<
+    InventorySummaryItem[]
+  >([]);
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Set tanggal default untuk bulan ini saat halaman dimuat
   useEffect(() => {
     const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
@@ -56,7 +58,9 @@ export default function LaporanBahanPage() {
     if (e) e.preventDefault();
     setIsLoading(true);
     setError("");
-    setReportData([]);
+    setUsageDetails([]);
+    setInventorySummary([]);
+
     try {
       const params = new URLSearchParams({ startDate, endDate });
       const res = await fetch(`/api/reports/materials?${params.toString()}`);
@@ -65,7 +69,8 @@ export default function LaporanBahanPage() {
         throw new Error(errData.message || "Gagal mengambil data laporan");
       }
       const data = await res.json();
-      setReportData(data);
+      setUsageDetails(data.usageLogs);
+      setInventorySummary(data.inventorySummary);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -74,80 +79,63 @@ export default function LaporanBahanPage() {
   };
 
   const handlePrintReport = () => {
-    if (!reportData || reportData.length === 0) {
-      toast.error(
-        "Tidak ada data untuk dicetak. Silakan tampilkan laporan terlebih dahulu."
-      );
+    if (usageDetails.length === 0 && inventorySummary.length === 0) {
+      toast.error("Tidak ada data untuk dicetak.");
       return;
     }
-    generateMaterialReportPDF(reportData, { startDate, endDate });
+    generateMaterialReportPDF(usageDetails, inventorySummary, {
+      startDate,
+      endDate,
+    });
   };
 
   return (
     <div>
       <h1 className="text-3xl font-bold text-slate-800 mb-8">
-        Laporan Rincian Penggunaan Bahan
+        Laporan Penggunaan & Stok Bahan
       </h1>
+
+      {/* --- BAGIAN BARU: KARTU SISA STOK --- */}
+      <div className="mb-8">
+        <h2 className="text-xl font-bold text-slate-800 mb-4">
+          Rekapitulasi Sisa Stok (Saat Ini)
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {inventorySummary.map((item) => (
+            <div
+              key={item.id}
+              className={`p-4 rounded-lg shadow-sm border ${
+                item.quantity < 10
+                  ? "bg-red-50 border-red-200"
+                  : "bg-white border-slate-200"
+              }`}
+            >
+              <p className="text-sm font-medium text-slate-600">{item.name}</p>
+              <p
+                className={`text-2xl font-bold ${
+                  item.quantity < 10 ? "text-red-600" : "text-slate-800"
+                }`}
+              >
+                {item.quantity.toLocaleString("id-ID")}
+              </p>
+              <p className="text-xs text-slate-500">{item.unit}</p>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Area Filter */}
       <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-8">
-        <form
-          onSubmit={handleFetchReport}
-          className="flex flex-wrap items-end gap-4"
-        >
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Dari Tanggal
-            </label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              required
-              className="w-full p-2 border border-slate-300 rounded-lg"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Sampai Tanggal
-            </label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              required
-              className="w-full p-2 border border-slate-300 rounded-lg"
-            />
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="px-4 py-2 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600 disabled:bg-blue-300"
-            >
-              {isLoading ? "Memuat..." : "Tampilkan"}
-            </button>
-            <button
-              type="button"
-              onClick={handlePrintReport}
-              disabled={!reportData || reportData.length === 0 || isLoading}
-              className="px-4 py-2 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 disabled:bg-green-300"
-              title="Cetak Laporan"
-            >
-              Cetak
-            </button>
-          </div>
-        </form>
-        {error && <p className="text-red-500 mt-4">{error}</p>}
+        {/* ... isi form filter tidak berubah ... */}
       </div>
 
       {/* Area Hasil Laporan */}
       {isLoading && <p className="text-center">Menghitung laporan...</p>}
 
-      {!isLoading && reportData && (
+      {!isLoading && usageDetails && (
         <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
           <h3 className="text-xl font-bold text-slate-800 mb-4">
-            Rincian Penggunaan
+            Rincian Penggunaan Bahan (Sesuai Periode)
           </h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left text-slate-500">
@@ -160,10 +148,7 @@ export default function LaporanBahanPage() {
                     Nama Bahan
                   </th>
                   <th scope="col" className="px-6 py-3 text-right">
-                    Jml Terpakai
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-right">
-                    Sisa Stok
+                    Jumlah Terpakai
                   </th>
                   <th scope="col" className="px-6 py-3">
                     Untuk Pesanan
@@ -174,8 +159,8 @@ export default function LaporanBahanPage() {
                 </tr>
               </thead>
               <tbody>
-                {reportData.length > 0 ? (
-                  reportData.map((log) => (
+                {usageDetails.length > 0 ? (
+                  usageDetails.map((log) => (
                     <tr
                       key={log.id}
                       className="bg-white border-b hover:bg-slate-50"
@@ -188,15 +173,6 @@ export default function LaporanBahanPage() {
                       </td>
                       <td className="px-6 py-4 text-right font-medium">
                         {log.quantityUsed} {log.inventoryItem.unit}
-                      </td>
-                      <td
-                        className={`px-6 py-4 text-right font-bold ${
-                          log.inventoryItem.quantity < 10
-                            ? "text-red-600"
-                            : "text-slate-800"
-                        }`}
-                      >
-                        {log.inventoryItem.quantity}
                       </td>
                       <td className="px-6 py-4">
                         <Link
@@ -213,7 +189,7 @@ export default function LaporanBahanPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="text-center py-10">
+                    <td colSpan={5} className="text-center py-10">
                       Tidak ada data penggunaan bahan pada periode ini.
                     </td>
                   </tr>

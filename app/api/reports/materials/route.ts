@@ -1,4 +1,4 @@
-// File: app/api/reports/materials/route.ts (Versi Final dengan Data Lengkap)
+// File: app/api/reports/materials/route.ts (Versi Final)
 
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
@@ -18,43 +18,40 @@ export async function GET(request: Request) {
       );
     }
 
-    const usageLogs = await prisma.materialUsageLog.findMany({
-      where: {
-        createdAt: {
-          gte: new Date(startDate),
-          lte: new Date(endDate),
-        },
-      },
-      include: {
-        inventoryItem: {
-          select: {
-            id: true,
-            name: true,
-            unit: true,
-            quantity: true, // Sisa stok saat ini
+    // Mengambil semua data secara paralel
+    const [usageLogs, inventorySummary] = await Promise.all([
+      // 1. Ambil log penggunaan dalam rentang tanggal
+      prisma.materialUsageLog.findMany({
+        where: {
+          createdAt: {
+            gte: new Date(startDate),
+            lte: new Date(endDate),
           },
         },
-        orderItem: {
-          include: {
-            order: {
-              include: {
-                customer: {
-                  // <-- PERUBAHAN DI SINI: Sertakan data pelanggan
-                  select: {
-                    name: true,
-                  },
+        include: {
+          inventoryItem: {
+            select: { name: true, unit: true },
+          },
+          orderItem: {
+            include: {
+              order: {
+                include: {
+                  customer: { select: { name: true } },
                 },
               },
             },
           },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+        orderBy: { createdAt: "desc" },
+      }),
+      // 2. Ambil ringkasan SEMUA item di inventaris
+      prisma.inventoryItem.findMany({
+        orderBy: { name: "asc" },
+      }),
+    ]);
 
-    return NextResponse.json(usageLogs);
+    // Gabungkan kedua hasil dalam satu respons
+    return NextResponse.json({ usageLogs, inventorySummary });
   } catch (error) {
     console.error("Gagal membuat laporan penggunaan bahan:", error);
     return NextResponse.json(
