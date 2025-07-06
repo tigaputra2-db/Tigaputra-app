@@ -1,4 +1,4 @@
-// File: app/dashboard/laporan-bahan/page.tsx (Versi Final dengan Nama Pemesan)
+// File: app/dashboard/laporan-bahan/page.tsx (Versi Final Lengkap)
 
 "use client";
 
@@ -7,7 +7,7 @@ import { generateMaterialReportPDF } from "@/app/lib/generateMaterialReportPDF";
 import toast from "react-hot-toast";
 import Link from "next/link";
 
-// --- Tipe data baru yang lebih lengkap ---
+// Definisikan tipe data yang lengkap sesuai dengan data dari API
 type MaterialUsageDetail = {
   id: string;
   createdAt: string;
@@ -22,7 +22,6 @@ type MaterialUsageDetail = {
       id: string;
       orderNumber: string;
       customer: {
-        // <-- Tambahkan info customer
         name: string;
       };
     };
@@ -36,6 +35,7 @@ export default function LaporanBahanPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Set tanggal default untuk bulan ini saat halaman dimuat
   useEffect(() => {
     const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
@@ -75,7 +75,9 @@ export default function LaporanBahanPage() {
 
   const handlePrintReport = () => {
     if (!reportData || reportData.length === 0) {
-      toast.error("Tidak ada data untuk dicetak.");
+      toast.error(
+        "Tidak ada data untuk dicetak. Silakan tampilkan laporan terlebih dahulu."
+      );
       return;
     }
     generateMaterialReportPDF(reportData, { startDate, endDate });
@@ -87,7 +89,60 @@ export default function LaporanBahanPage() {
         Laporan Rincian Penggunaan Bahan
       </h1>
 
-      {/* ... Area Filter tidak berubah ... */}
+      {/* Area Filter */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-8">
+        <form
+          onSubmit={handleFetchReport}
+          className="flex flex-wrap items-end gap-4"
+        >
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Dari Tanggal
+            </label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              required
+              className="w-full p-2 border border-slate-300 rounded-lg"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Sampai Tanggal
+            </label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              required
+              className="w-full p-2 border border-slate-300 rounded-lg"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="px-4 py-2 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600 disabled:bg-blue-300"
+            >
+              {isLoading ? "Memuat..." : "Tampilkan"}
+            </button>
+            <button
+              type="button"
+              onClick={handlePrintReport}
+              disabled={!reportData || reportData.length === 0 || isLoading}
+              className="px-4 py-2 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 disabled:bg-green-300"
+              title="Cetak Laporan"
+            >
+              Cetak
+            </button>
+          </div>
+        </form>
+        {error && <p className="text-red-500 mt-4">{error}</p>}
+      </div>
+
+      {/* Area Hasil Laporan */}
+      {isLoading && <p className="text-center">Menghitung laporan...</p>}
 
       {!isLoading && reportData && (
         <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
@@ -115,8 +170,7 @@ export default function LaporanBahanPage() {
                   </th>
                   <th scope="col" className="px-6 py-3">
                     Nama Pemesan
-                  </th>{" "}
-                  {/* <-- Kolom baru */}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -152,7 +206,6 @@ export default function LaporanBahanPage() {
                           {log.orderItem.order.orderNumber}
                         </Link>
                       </td>
-                      {/* --- Data Nama Pemesan --- */}
                       <td className="px-6 py-4">
                         {log.orderItem.order.customer.name}
                       </td>
