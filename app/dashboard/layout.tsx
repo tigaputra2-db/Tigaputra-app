@@ -1,4 +1,4 @@
-// File: app/dashboard/layout.tsx (Versi Final dengan Menu Penerimaan)
+// File: app/dashboard/layout.tsx (Versi Final dengan Logo)
 
 "use client";
 
@@ -193,7 +193,7 @@ export default function DashboardLayout({
       href: "/dashboard/penerimaan",
       label: "Penerimaan",
       icon: <PenerimaanIcon />,
-    }, // <-- MENU BARU
+    },
   ];
 
   const settingsLink: NavLink = {
@@ -212,11 +212,17 @@ export default function DashboardLayout({
       <Toaster position="top-center" reverseOrder={false} />
 
       <aside className="w-64 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col">
-        <div className="h-16 flex items-center justify-center border-b border-slate-200">
+        {/* --- PERUBAHAN DI SINI --- */}
+        <div className="h-16 flex items-center gap-3 px-6 border-b border-slate-200">
+          <img
+            src="https://wymrcotvuonhmltshbis.supabase.co/storage/v1/object/public/desain-pesanan//3plogoonly.png"
+            alt="Logo Tiga Putra"
+            className="h-8 w-8 rounded-full"
+          />
           <h2 className="text-xl font-bold text-slate-800">Tiga Putra</h2>
         </div>
+
         <nav className="flex-grow p-4">
-          {/* Menu Utama */}
           <ul>
             {navLinks.map((link) => {
               const isActive =
@@ -246,7 +252,7 @@ export default function DashboardLayout({
             })}
           </ul>
         </nav>
-        {/* Menu Pengaturan & Logout di Bawah */}
+
         <div className="p-4 border-t border-slate-200">
           <ul>
             <li className="mb-2">
@@ -287,6 +293,7 @@ export default function DashboardLayout({
           </button>
         </div>
       </aside>
+
       <div className="flex-1 flex flex-col">
         <header className="h-16 bg-white border-b border-slate-200 flex items-center px-8"></header>
         <main className="flex-1 p-8 overflow-y-auto">{children}</main>
