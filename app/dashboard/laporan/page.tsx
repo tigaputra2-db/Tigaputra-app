@@ -1,8 +1,10 @@
-// File: app/dashboard/laporan/page.tsx (Versi Baru dengan Kolom Metode Pembayaran)
+// File: app/dashboard/laporan/page.tsx (Versi Final dengan Tombol Cetak)
 
 "use client";
 
 import React, { useState, useEffect, FormEvent } from "react";
+import { generateSalesReportPDF } from "@/app/lib/generateSalesReportPDF"; // <-- 1. Import fungsi pencetak
+import toast from "react-hot-toast";
 
 // Definisikan tipe data untuk Laporan
 type ReportSummary = {
@@ -10,16 +12,14 @@ type ReportSummary = {
   totalTransactions: number;
   averagePerTransaction: number;
 };
-
 type Transaction = {
   id: string;
   orderNumber: string;
   orderDate: string;
   totalAmount: number;
-  paymentMethod: string | null; // <-- Tambahkan properti ini
+  paymentMethod: string | null;
   customer: { name: string };
 };
-
 type ReportData = {
   summary: ReportSummary;
   transactions: Transaction[];
@@ -40,19 +40,16 @@ const SummaryCard = ({
 );
 
 export default function LaporanPage() {
-  // State untuk filter
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [productTypeFilter, setProductTypeFilter] = useState("semua");
   const [paymentStatusFilter, setPaymentStatusFilter] = useState("semua");
   const [paymentMethodFilter, setPaymentMethodFilter] = useState("semua");
 
-  // State untuk menampung hasil laporan
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Set tanggal default untuk bulan ini saat halaman dimuat
   useEffect(() => {
     const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
@@ -85,12 +82,10 @@ export default function LaporanPage() {
         params.append("paymentMethod", paymentMethodFilter);
 
       const res = await fetch(`/api/reports/sales?${params.toString()}`);
-
       if (!res.ok) {
         const errData = await res.json();
         throw new Error(errData.message || "Gagal mengambil data laporan");
       }
-
       const data = await res.json();
       setReportData(data);
     } catch (err: any) {
@@ -98,6 +93,17 @@ export default function LaporanPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // --- 2. FUNGSI BARU UNTUK MENANGANI CETAK ---
+  const handlePrintReport = () => {
+    if (!reportData || reportData.transactions.length === 0) {
+      toast.error(
+        "Tidak ada data untuk dicetak. Silakan tampilkan laporan terlebih dahulu."
+      );
+      return;
+    }
+    generateSalesReportPDF(reportData, { startDate, endDate });
   };
 
   return (
@@ -198,6 +204,15 @@ export default function LaporanPage() {
               className="w-full px-4 py-2 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600 disabled:bg-blue-300"
             >
               {isLoading ? "Memuat..." : "Terapkan Filter"}
+            </button>
+            <button
+              type="button"
+              onClick={handlePrintReport}
+              disabled={!reportData || isLoading}
+              className="w-full px-4 py-2 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 disabled:bg-green-300"
+              title="Cetak Laporan"
+            >
+              Cetak
             </button>
           </div>
         </form>
