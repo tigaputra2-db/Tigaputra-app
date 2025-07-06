@@ -1,8 +1,8 @@
-// File: app/dashboard/layout.tsx (Versi Diperbaiki untuk Hydration Error)
+// File: app/dashboard/layout.tsx (Versi Final dengan Menu Pengeluaran)
 
 "use client";
 
-import React, { useState, useEffect, JSX } from "react"; // Tambahkan useState dan useEffect
+import React, { useState, useEffect, JSX } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Toaster } from "react-hot-toast";
@@ -141,6 +141,22 @@ const PenerimaanIcon = () => (
     <line x1="12" y1="15" x2="12" y2="3" />
   </svg>
 );
+const PengeluaranIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <rect width="20" height="14" x="2" y="5" rx="2" />
+    <line x1="2" x2="22" y1="10" y2="10" />
+  </svg>
+);
 const PengaturanIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -164,9 +180,8 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const [isClient, setIsClient] = useState(false); // <-- State baru
+  const [isClient, setIsClient] = useState(false);
 
-  // Efek ini hanya berjalan di sisi klien setelah komponen dimuat
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -195,6 +210,11 @@ export default function DashboardLayout({
       label: "Penerimaan",
       icon: <PenerimaanIcon />,
     },
+    {
+      href: "/dashboard/pengeluaran",
+      label: "Pengeluaran",
+      icon: <PengeluaranIcon />,
+    }, // <-- MENU BARU
   ];
 
   const settingsLink: NavLink = {
@@ -216,17 +236,16 @@ export default function DashboardLayout({
         <div className="h-16 flex items-center gap-3 px-6 border-b border-slate-200">
           <img
             src="https://wymrcotvuonhmltshbis.supabase.co/storage/v1/object/public/desain-pesanan//3plogoonly.png"
-            alt="Logo Tiga Putra"
+            alt="Logo Tigaputra"
             className="h-8 w-8.5 rounded-full"
           />
-          <h2 className="text-xl font-bold text-slate-800">Tiga Putra</h2>
+          <h2 className="text-xl font-bold text-slate-800">Tigaputra</h2>
         </div>
 
         <nav className="flex-grow p-4">
+          {/* Menu Utama */}
           <ul>
             {navLinks.map((link) => {
-              // --- PERBAIKAN LOGIKA DI SINI ---
-              // Kalkulasi isActive sekarang aman karena hanya berjalan setelah isClient true
               const isActive =
                 isClient &&
                 (pathname === link.href ||
