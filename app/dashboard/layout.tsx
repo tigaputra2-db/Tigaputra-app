@@ -217,7 +217,7 @@ export default function DashboardLayout({
           <img
             src="https://wymrcotvuonhmltshbis.supabase.co/storage/v1/object/public/desain-pesanan//3plogoonly.png"
             alt="Logo Tiga Putra"
-            className="h-8 w-8 rounded-full"
+            className="h-8 w-9.3 rounded-full"
           />
           <h2 className="text-xl font-bold text-slate-800">Tiga Putra</h2>
         </div>
