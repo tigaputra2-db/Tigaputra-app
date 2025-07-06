@@ -11,7 +11,7 @@ import React, {
 } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { generateSalesReportPDF } from "@/app/lib/generateSalesReportPDF";
+import { generateSalesReportPDF } from "@/app/lib/generateSalesReportPDF"; // Pastikan path ini benar
 
 // --- DEFINISI TIPE DATA ---
 type OrderItem = {
@@ -118,16 +118,14 @@ export default function LaporanPage() {
     }
   };
 
-  // Fungsi untuk cetak PDF
+  // --- FUNGSI CETAK PDF (DIPERBARUI) ---
   const handlePrintReport = () => {
     if (!reportData || reportData.transactions.length === 0) {
       toast.error("Tidak ada data untuk dicetak.");
       return;
     }
-    // generateSalesReportPDF(reportData, { startDate, endDate });
-    toast.error(
-      "Fungsi cetak laporan detail belum diimplementasikan sepenuhnya."
-    );
+    // Panggil fungsi yang sudah diperbarui
+    generateSalesReportPDF(reportData, { startDate, endDate });
   };
 
   // Fungsi untuk membuka/menutup baris detail
