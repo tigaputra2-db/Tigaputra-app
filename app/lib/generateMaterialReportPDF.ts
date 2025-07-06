@@ -1,4 +1,4 @@
-// File: app/lib/generateMaterialReportPDF.ts (Versi Final dengan Rekap & Sisa Stok)
+// File: app/lib/generateMaterialReportPDF.ts (Versi Final dengan Semua Detail)
 
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -17,6 +17,10 @@ interface MaterialUsageDetail {
     order: {
       id: string;
       orderNumber: string;
+      customer: {
+        // <-- Tambahkan info customer
+        name: string;
+      };
     };
   };
 }
@@ -73,7 +77,7 @@ export const generateMaterialReportPDF = (
     });
   }
 
-  y += 5; // Spasi sebelum tabel
+  y += 5;
 
   // --- TABEL RINCIAN ---
   const tableColumn = [
@@ -82,6 +86,7 @@ export const generateMaterialReportPDF = (
     "Jumlah",
     "Sisa Stok",
     "Untuk Pesanan",
+    "Nama Pemesan",
   ];
   const tableRows: any[] = [];
 
@@ -92,6 +97,7 @@ export const generateMaterialReportPDF = (
       `${log.quantityUsed} ${log.inventoryItem.unit}`,
       `${log.inventoryItem.quantity} ${log.inventoryItem.unit}`,
       log.orderItem.order.orderNumber,
+      log.orderItem.order.customer.name,
     ];
     tableRows.push(row);
   });

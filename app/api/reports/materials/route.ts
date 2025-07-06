@@ -18,7 +18,6 @@ export async function GET(request: Request) {
       );
     }
 
-    // Ambil semua log dalam rentang tanggal yang dipilih
     const usageLogs = await prisma.materialUsageLog.findMany({
       where: {
         createdAt: {
@@ -32,15 +31,19 @@ export async function GET(request: Request) {
             id: true,
             name: true,
             unit: true,
-            quantity: true, // Ambil sisa stok saat ini
+            quantity: true, // Sisa stok saat ini
           },
         },
         orderItem: {
           include: {
             order: {
-              select: {
-                id: true,
-                orderNumber: true,
+              include: {
+                customer: {
+                  // <-- PERUBAHAN DI SINI: Sertakan data pelanggan
+                  select: {
+                    name: true,
+                  },
+                },
               },
             },
           },

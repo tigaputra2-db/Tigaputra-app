@@ -1,4 +1,4 @@
-// File: app/dashboard/laporan-bahan/page.tsx (Versi Final dengan Rincian & Sisa Stok)
+// File: app/dashboard/laporan-bahan/page.tsx (Versi Final dengan Nama Pemesan)
 
 "use client";
 
@@ -21,6 +21,10 @@ type MaterialUsageDetail = {
     order: {
       id: string;
       orderNumber: string;
+      customer: {
+        // <-- Tambahkan info customer
+        name: string;
+      };
     };
   };
 };
@@ -101,15 +105,18 @@ export default function LaporanBahanPage() {
                     Nama Bahan
                   </th>
                   <th scope="col" className="px-6 py-3 text-right">
-                    Jumlah Terpakai
+                    Jml Terpakai
                   </th>
                   <th scope="col" className="px-6 py-3 text-right">
                     Sisa Stok
-                  </th>{" "}
-                  {/* <-- Kolom baru */}
+                  </th>
                   <th scope="col" className="px-6 py-3">
                     Untuk Pesanan
                   </th>
+                  <th scope="col" className="px-6 py-3">
+                    Nama Pemesan
+                  </th>{" "}
+                  {/* <-- Kolom baru */}
                 </tr>
               </thead>
               <tbody>
@@ -128,7 +135,6 @@ export default function LaporanBahanPage() {
                       <td className="px-6 py-4 text-right font-medium">
                         {log.quantityUsed} {log.inventoryItem.unit}
                       </td>
-                      {/* --- Data Sisa Stok --- */}
                       <td
                         className={`px-6 py-4 text-right font-bold ${
                           log.inventoryItem.quantity < 10
@@ -146,11 +152,15 @@ export default function LaporanBahanPage() {
                           {log.orderItem.order.orderNumber}
                         </Link>
                       </td>
+                      {/* --- Data Nama Pemesan --- */}
+                      <td className="px-6 py-4">
+                        {log.orderItem.order.customer.name}
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="text-center py-10">
+                    <td colSpan={6} className="text-center py-10">
                       Tidak ada data penggunaan bahan pada periode ini.
                     </td>
                   </tr>
