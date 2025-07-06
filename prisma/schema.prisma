@@ -23,6 +23,7 @@ model User {
   updatedAt          DateTime           @updatedAt
   ordersUpdated      Order[]            @relation("UserUpdates")
   materialLogsLogged MaterialUsageLog[]
+  expensesLogged          ExpenseLog[]       @relation("UserExpenses")
 }
 
 model Customer {
@@ -154,6 +155,19 @@ model FieldDefinition {
   
   productTypeId String
   productType   ProductType @relation(fields: [productTypeId], references: [id], onDelete: Cascade)
+}
+
+model ExpenseLog {
+  id          String   @id @default(cuid())
+  description String   // e.g., "Pembelian Tinta Putih", "Bayar Listrik"
+  amount      Float    // Jumlah pengeluaran
+  category    String?  // e.g., "Bahan Baku", "Operasional", "Gaji"
+  expenseDate DateTime // Tanggal pengeluaran terjadi
+  
+  loggedById  String
+  loggedBy    User     @relation("UserExpenses", fields: [loggedById], references: [id])
+
+  createdAt   DateTime @default(now())
 }
 
 
