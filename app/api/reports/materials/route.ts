@@ -1,4 +1,4 @@
-// File: app/api/reports/materials/route.ts
+// File: app/api/reports/materials/route.ts (Versi Diperbarui)
 
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
@@ -29,6 +29,7 @@ export async function GET(request: Request) {
       include: {
         inventoryItem: {
           select: {
+            id: true, // Ambil ID untuk mencocokkan
             name: true,
             unit: true,
           },
@@ -36,31 +37,39 @@ export async function GET(request: Request) {
       },
     });
 
-    // Proses agregasi data menggunakan JavaScript
-    const report: {
+    // Proses agregasi data penggunaan
+    const usageReport: {
       [key: string]: { name: string; unit: string; totalUsed: number };
     } = {};
-
     for (const log of usageLogs) {
       const itemId = log.inventoryItemId;
-      // Jika bahan ini belum ada di laporan, inisialisasi dulu
-      if (!report[itemId]) {
-        report[itemId] = {
+      if (!usageReport[itemId]) {
+        usageReport[itemId] = {
           name: log.inventoryItem.name,
           unit: log.inventoryItem.unit,
           totalUsed: 0,
         };
       }
-      // Tambahkan jumlah yang digunakan ke total
-      report[itemId].totalUsed += log.quantityUsed;
+      usageReport[itemId].totalUsed += log.quantityUsed;
     }
 
-    // Ubah format dari objek menjadi array agar mudah ditampilkan
-    const reportArray = Object.values(report).sort((a, b) =>
-      a.name.localeCompare(b.name)
+    // Ambil semua data inventaris untuk mendapatkan stok saat ini
+    const allInventoryItems = await prisma.inventoryItem.findMany();
+
+    // Gabungkan data penggunaan dengan data stok saat ini
+    const finalReport = Object.entries(usageReport).map(
+      ([itemId, usageData]) => {
+        const currentStock = allInventoryItems.find((inv) => inv.id === itemId);
+        return {
+          ...usageData,
+          remainingStock: currentStock?.quantity ?? 0, // Ambil sisa stok
+        };
+      }
     );
 
-    return NextResponse.json(reportArray);
+    return NextResponse.json(
+      finalReport.sort((a, b) => a.name.localeCompare(b.name))
+    );
   } catch (error) {
     console.error("Gagal membuat laporan penggunaan bahan:", error);
     return NextResponse.json(

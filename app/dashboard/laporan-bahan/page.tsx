@@ -4,12 +4,15 @@
 
 import React, { useState, useEffect, FormEvent } from "react";
 import Link from "next/link";
+import { generateMaterialReportPDF } from "@/app/lib/generateMaterialReportPDF";
+import toast from "react-hot-toast";
 
 // Definisikan tipe data untuk hasil laporan
 type MaterialReportItem = {
   name: string;
   unit: string;
   totalUsed: number;
+  remainingStock: number;
 };
 
 export default function LaporanBahanPage() {
@@ -61,6 +64,15 @@ export default function LaporanBahanPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handlePrintReport = () => {
+    if (!reportData || reportData.length === 0) {
+      toast.error("Tidak ada data untuk dicetak.");
+      return;
+    }
+    // Sekarang kita mengirim data yang sudah lengkap ke fungsi PDF
+    generateMaterialReportPDF(reportData, { startDate, endDate });
   };
 
   return (
@@ -120,46 +132,30 @@ export default function LaporanBahanPage() {
 
       {!isLoading && reportData && (
         <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-          <h3 className="text-xl font-bold text-slate-800 mb-4">
-            Rekapitulasi Penggunaan Bahan
-          </h3>
+          <h3 className="text-xl font-bold text-slate-800 mb-4">Rekapitulasi Penggunaan Bahan</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left text-slate-500">
               <thead className="text-xs text-slate-700 uppercase bg-slate-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3">
-                    Nama Bahan
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-right">
-                    Total Terpakai
-                  </th>
-                  <th scope="col" className="px-6 py-3">
-                    Satuan
-                  </th>
+                  <th scope="col" className="px-6 py-3">Nama Bahan</th>
+                  <th scope="col" className="px-6 py-3 text-right">Total Terpakai</th>
+                  <th scope="col" className="px-6 py-3 text-right">Sisa Stok</th> {/* <-- Kolom baru */}
+                  <th scope="col" className="px-6 py-3">Satuan</th>
                 </tr>
               </thead>
               <tbody>
-                {reportData.length > 0 ? (
-                  reportData.map((item, index) => (
-                    <tr
-                      key={index}
-                      className="bg-white border-b hover:bg-slate-50"
-                    >
-                      <td className="px-6 py-4 font-medium text-slate-900">
-                        {item.name}
-                      </td>
-                      <td className="px-6 py-4 text-right font-bold text-slate-800">
-                        {item.totalUsed.toLocaleString("id-ID")}
-                      </td>
-                      <td className="px-6 py-4">{item.unit}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={3} className="text-center py-10">
-                      Tidak ada data penggunaan bahan pada periode ini.
+                {reportData.length > 0 ? reportData.map((item, index) => (
+                  <tr key={index} className={`bg-white border-b hover:bg-slate-50 ${item.remainingStock < 10 ? 'bg-red-50' : ''}`}>
+                    <td className="px-6 py-4 font-medium text-slate-900">{item.name}</td>
+                    <td className="px-6 py-4 text-right font-medium">{item.totalUsed.toLocaleString('id-ID')}</td>
+                    {/* --- Data baru --- */}
+                    <td className={`px-6 py-4 text-right font-bold ${item.remainingStock < 10 ? 'text-red-600' : 'text-slate-800'}`}>
+                      {item.remainingStock.toLocaleString('id-ID')}
                     </td>
+                    <td className="px-6 py-4">{item.unit}</td>
                   </tr>
+                )) : (
+                  <tr><td colSpan={4} className="text-center py-10">Tidak ada data penggunaan bahan pada periode ini.</td></tr>
                 )}
               </tbody>
             </table>
