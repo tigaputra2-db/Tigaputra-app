@@ -1,9 +1,8 @@
-// File: app/dashboard/laporan-bahan/page.tsx
+// File: app/dashboard/laporan-bahan/page.tsx (Versi Final dengan Tombol Cetak)
 
 "use client";
 
 import React, { useState, useEffect, FormEvent } from "react";
-import Link from "next/link";
 import { generateMaterialReportPDF } from "@/app/lib/generateMaterialReportPDF";
 import toast from "react-hot-toast";
 
@@ -66,23 +65,22 @@ export default function LaporanBahanPage() {
     }
   };
 
+  // --- FUNGSI BARU UNTUK MENANGANI CETAK ---
   const handlePrintReport = () => {
     if (!reportData || reportData.length === 0) {
-      toast.error("Tidak ada data untuk dicetak.");
+      toast.error(
+        "Tidak ada data untuk dicetak. Silakan tampilkan laporan terlebih dahulu."
+      );
       return;
     }
-    // Sekarang kita mengirim data yang sudah lengkap ke fungsi PDF
     generateMaterialReportPDF(reportData, { startDate, endDate });
   };
 
   return (
     <div>
-      <div className="mb-8">
-        {/* Link Kembali telah dihapus agar menjadi halaman utama */}
-        <h1 className="text-3xl font-bold text-slate-800">
-          Laporan Penggunaan Bahan
-        </h1>
-      </div>
+      <h1 className="text-3xl font-bold text-slate-800 mb-8">
+        Laporan Penggunaan Bahan
+      </h1>
 
       {/* Area Filter */}
       <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-8">
@@ -114,13 +112,23 @@ export default function LaporanBahanPage() {
               className="w-full p-2 border border-slate-300 rounded-lg"
             />
           </div>
-          <div>
+          <div className="flex gap-2">
             <button
               type="submit"
               disabled={isLoading}
               className="px-4 py-2 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600 disabled:bg-blue-300"
             >
-              {isLoading ? "Memuat..." : "Tampilkan Laporan"}
+              {isLoading ? "Memuat..." : "Tampilkan"}
+            </button>
+            {/* --- TOMBOL CETAK BARU --- */}
+            <button
+              type="button"
+              onClick={handlePrintReport}
+              disabled={!reportData || reportData.length === 0 || isLoading}
+              className="px-4 py-2 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 disabled:bg-green-300"
+              title="Cetak Laporan"
+            >
+              Cetak
             </button>
           </div>
         </form>
@@ -132,30 +140,60 @@ export default function LaporanBahanPage() {
 
       {!isLoading && reportData && (
         <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-          <h3 className="text-xl font-bold text-slate-800 mb-4">Rekapitulasi Penggunaan Bahan</h3>
+          <h3 className="text-xl font-bold text-slate-800 mb-4">
+            Rekapitulasi Penggunaan Bahan
+          </h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left text-slate-500">
               <thead className="text-xs text-slate-700 uppercase bg-slate-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3">Nama Bahan</th>
-                  <th scope="col" className="px-6 py-3 text-right">Total Terpakai</th>
-                  <th scope="col" className="px-6 py-3 text-right">Sisa Stok</th> {/* <-- Kolom baru */}
-                  <th scope="col" className="px-6 py-3">Satuan</th>
+                  <th scope="col" className="px-6 py-3">
+                    Nama Bahan
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-right">
+                    Total Terpakai
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-right">
+                    Sisa Stok
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    Satuan
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {reportData.length > 0 ? reportData.map((item, index) => (
-                  <tr key={index} className={`bg-white border-b hover:bg-slate-50 ${item.remainingStock < 10 ? 'bg-red-50' : ''}`}>
-                    <td className="px-6 py-4 font-medium text-slate-900">{item.name}</td>
-                    <td className="px-6 py-4 text-right font-medium">{item.totalUsed.toLocaleString('id-ID')}</td>
-                    {/* --- Data baru --- */}
-                    <td className={`px-6 py-4 text-right font-bold ${item.remainingStock < 10 ? 'text-red-600' : 'text-slate-800'}`}>
-                      {item.remainingStock.toLocaleString('id-ID')}
+                {reportData.length > 0 ? (
+                  reportData.map((item, index) => (
+                    <tr
+                      key={index}
+                      className={`bg-white border-b hover:bg-slate-50 ${
+                        item.remainingStock < 10 ? "bg-red-50" : ""
+                      }`}
+                    >
+                      <td className="px-6 py-4 font-medium text-slate-900">
+                        {item.name}
+                      </td>
+                      <td className="px-6 py-4 text-right font-medium">
+                        {item.totalUsed.toLocaleString("id-ID")}
+                      </td>
+                      <td
+                        className={`px-6 py-4 text-right font-bold ${
+                          item.remainingStock < 10
+                            ? "text-red-600"
+                            : "text-slate-800"
+                        }`}
+                      >
+                        {item.remainingStock.toLocaleString("id-ID")}
+                      </td>
+                      <td className="px-6 py-4">{item.unit}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="text-center py-10">
+                      Tidak ada data penggunaan bahan pada periode ini.
                     </td>
-                    <td className="px-6 py-4">{item.unit}</td>
                   </tr>
-                )) : (
-                  <tr><td colSpan={4} className="text-center py-10">Tidak ada data penggunaan bahan pada periode ini.</td></tr>
                 )}
               </tbody>
             </table>

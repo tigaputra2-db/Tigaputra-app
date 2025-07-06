@@ -205,6 +205,7 @@ export default function LaporanPage() {
             >
               {isLoading ? "Memuat..." : "Terapkan Filter"}
             </button>
+            {/* --- TOMBOL CETAK BARU --- */}
             <button
               type="button"
               onClick={handlePrintReport}
