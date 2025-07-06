@@ -1,60 +1,51 @@
-// File: app/lib/generateInvoice.ts (Versi Dioptimalkan untuk Ukuran File)
+// File: app/lib/generateInvoice.ts (Versi Final dengan Perbaikan Kalkulasi)
 
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-// Definisikan tipe data agar lebih aman
+// Definisikan tipe data yang lebih lengkap
+interface OrderItemData {
+  productType: string;
+  quantity: number;
+  unitPrice: number;
+  discount: number; // Diskon per item
+}
+
 interface OrderData {
   orderNumber: string;
   orderDate: string;
   customer: { name: string; phone: string | null; address: string | null };
-  items: { productType: string; quantity: number; unitPrice: number }[];
-  totalAmount: number;
+  items: OrderItemData[];
+  totalAmount: number; // Ini adalah Grand Total setelah semua diskon
   paidAmount: number;
   notes: string | null;
 }
 
 export const generateInvoicePDF = (order: OrderData) => {
-  // --- PERUBAHAN 1: Aktifkan kompresi PDF ---
   const doc = new jsPDF({ compress: true });
   const pageHeight = doc.internal.pageSize.height;
   let y = 15;
 
   // --- HEADER ---
-  // Logo di Kiri
   const logoUrl =
     "https://wymrcotvuonhmltshbis.supabase.co/storage/v1/object/public/desain-pesanan//3p%20logo.png";
-  // --- PERUBAHAN 2: Tambahkan kompresi pada gambar ---
   doc.addImage(logoUrl, "PNG", 15, y, 20, 16.7, undefined, "FAST");
-
-  // Info Perusahaan di Tengah
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.text("Tiga Putra Sablon & Konveksi", 105, y + 5, { align: "center" });
+  doc.text("Tiga Putra Sablon & Konveksi", 40, y + 5);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.text(
-    "Jl. Anjasmoro Tengah I No.22, Karangayu, Semarang Barat, Jawa Tengah 50149",
-    105,
-    y + 11,
-    { align: "center" }
-  );
+  doc.text("Jl. Anjasmoro Tengah I No.22, Karangayu,", 40, y + 11);
+  doc.text("Semarang Barat, Jawa Tengah 50149", 40, y + 16);
   doc.text(
     "tigaputrakids@gmail.com | 0858-8139-7842 | 0823-2474-9297",
-    105,
-    y + 16,
-    {
-      align: "center",
-    }
+    40,
+    y + 21
   );
-
-  // Teks Invoice di Kanan
   doc.setFontSize(20);
   doc.setFont("helvetica", "bold");
   doc.text("INVOICE", 195, y + 8, { align: "right" });
-
-  y += 20;
-
+  y += 25;
   doc.setLineWidth(0.5);
   doc.line(15, y, 195, y);
   y += 10;
@@ -64,7 +55,6 @@ export const generateInvoicePDF = (order: OrderData) => {
   doc.setFont("helvetica", "bold");
   doc.text("Ditagihkan Kepada:", 15, y);
   doc.text("Info Pesanan:", 110, y);
-
   doc.setFont("helvetica", "normal");
   y += 6;
   doc.text(order.customer.name, 15, y);
@@ -82,23 +72,33 @@ export const generateInvoicePDF = (order: OrderData) => {
     80
   );
   doc.text(customerAddress, 15, y);
-
   y =
     doc.getTextDimensions(customerAddress).h > 5
       ? y + doc.getTextDimensions(customerAddress).h + 5
       : y + 10;
 
-  // --- TABEL ITEM ---
-  const tableColumn = ["Deskripsi", "Kuantitas", "Harga Satuan", "Subtotal"];
+  // --- TABEL ITEM DENGAN DISKON ---
+  const tableColumn = [
+    "Deskripsi",
+    "Kuantitas",
+    "Harga Satuan",
+    "Diskon (Rp)",
+    "Subtotal",
+  ];
   const tableRows: any[] = [];
+  let subtotalBeforeDiscount = 0;
 
   order.items.forEach((item) => {
-    const subtotal = item.quantity * item.unitPrice;
+    const itemSubtotal = item.quantity * item.unitPrice;
+    subtotalBeforeDiscount += itemSubtotal;
+    const itemTotal = item.quantity * (item.unitPrice - (item.discount || 0));
+
     const itemData = [
       item.productType,
       item.quantity,
       `Rp ${item.unitPrice.toLocaleString("id-ID")}`,
-      `Rp ${subtotal.toLocaleString("id-ID")}`,
+      `- Rp ${(item.discount || 0).toLocaleString("id-ID")}`,
+      `Rp ${itemTotal.toLocaleString("id-ID")}`,
     ];
     tableRows.push(itemData);
   });
@@ -113,21 +113,54 @@ export const generateInvoicePDF = (order: OrderData) => {
 
   y = (doc as any).lastAutoTable.finalY + 10;
 
-  // --- RINGKASAN BIAYA ---
+  // --- RINGKASAN BIAYA DENGAN DETAIL DISKON (DIPERBAIKI) ---
+  const totalItemDiscount = order.items.reduce(
+    (sum, item) => sum + item.quantity * (item.discount || 0),
+    0
+  );
+  const subtotalAfterItemDiscount = subtotalBeforeDiscount - totalItemDiscount;
+  const subtotalDiscount = subtotalAfterItemDiscount - order.totalAmount;
   const sisaPembayaran = order.totalAmount - order.paidAmount;
+
   doc.setFontSize(10);
-  doc.text(`Total:`, 150, y, { align: "right" });
+  doc.text(`Subtotal:`, 140, y, { align: "right" });
+  doc.text(`Rp ${subtotalBeforeDiscount.toLocaleString("id-ID")}`, 195, y, {
+    align: "right",
+  });
+  y += 7;
+
+  if (totalItemDiscount > 0) {
+    doc.text(`Total Diskon Item:`, 140, y, { align: "right" });
+    doc.text(`- Rp ${totalItemDiscount.toLocaleString("id-ID")}`, 195, y, {
+      align: "right",
+    });
+    y += 7;
+  }
+
+  if (subtotalDiscount > 0) {
+    doc.text(`Diskon Tambahan:`, 140, y, { align: "right" });
+    doc.text(`- Rp ${subtotalDiscount.toLocaleString("id-ID")}`, 195, y, {
+      align: "right",
+    });
+    y += 7;
+  }
+
+  doc.setFont("helvetica", "bold");
+  doc.text(`Grand Total:`, 140, y, { align: "right" });
   doc.text(`Rp ${order.totalAmount.toLocaleString("id-ID")}`, 195, y, {
     align: "right",
   });
   y += 7;
-  doc.text(`Sudah Dibayar (DP):`, 150, y, { align: "right" });
+
+  doc.setFont("helvetica", "normal");
+  doc.text(`Sudah Dibayar (DP):`, 140, y, { align: "right" });
   doc.text(`Rp ${order.paidAmount.toLocaleString("id-ID")}`, 195, y, {
     align: "right",
   });
   y += 7;
+
   doc.setFont("helvetica", "bold");
-  doc.text(`Sisa Pembayaran:`, 150, y, { align: "right" });
+  doc.text(`Sisa Pembayaran:`, 140, y, { align: "right" });
   doc.text(`Rp ${sisaPembayaran.toLocaleString("id-ID")}`, 195, y, {
     align: "right",
   });
@@ -140,7 +173,6 @@ export const generateInvoicePDF = (order: OrderData) => {
     y += 5;
     const splitNotes = doc.splitTextToSize(order.notes, 180);
     doc.text(splitNotes, 15, y);
-    y += splitNotes.length * 5 + 5;
   }
 
   // --- FOOTER ---
