@@ -1,4 +1,4 @@
-// File: app/dashboard/laporan-bahan/page.tsx (Versi Baru dengan Rincian per Pesanan)
+// File: app/dashboard/laporan-bahan/page.tsx (Versi Final dengan Rincian Detail)
 
 "use client";
 
@@ -7,7 +7,7 @@ import { generateMaterialReportPDF } from "@/app/lib/generateMaterialReportPDF";
 import toast from "react-hot-toast";
 import Link from "next/link";
 
-// Definisikan tipe data baru untuk hasil laporan yang detail
+// --- PERUBAHAN DI SINI: Menggunakan tipe data yang lebih detail ---
 type MaterialUsageDetail = {
   id: string;
   createdAt: string;
@@ -30,7 +30,7 @@ export default function LaporanBahanPage() {
   const [endDate, setEndDate] = useState("");
 
   // State untuk menampung hasil laporan
-  const [reportData, setReportData] = useState<MaterialUsageDetail[]>([]);
+  const [reportData, setReportData] = useState<MaterialUsageDetail[]>([]); // <-- Menggunakan tipe baru
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -82,9 +82,8 @@ export default function LaporanBahanPage() {
       );
       return;
     }
-    // Kita perlu update fungsi generateMaterialReportPDF juga
-    // generateMaterialReportPDF(reportData, { startDate, endDate });
-    toast.error("Fungsi cetak untuk laporan detail ini belum dibuat.");
+    // Sekarang tipe datanya sudah cocok
+    generateMaterialReportPDF(reportData, { startDate, endDate });
   };
 
   return (
