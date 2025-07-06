@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     const endDate = searchParams.get("endDate");
     const productType = searchParams.get("productType");
     const paymentStatus = searchParams.get("paymentStatus");
-    const paymentMethod = searchParams.get("paymentMethod"); // <-- Ambil parameter baru
+    const paymentMethod = searchParams.get("paymentMethod");
 
     if (!startDate || !endDate) {
       return NextResponse.json(
@@ -45,7 +45,6 @@ export async function GET(request: Request) {
       };
     }
 
-    // --- TAMBAHAN LOGIKA FILTER UNTUK METODE PEMBAYARAN ---
     if (paymentMethod && paymentMethod !== "semua") {
       whereClause.paymentMethod = paymentMethod;
     }
@@ -54,7 +53,11 @@ export async function GET(request: Request) {
     const transactions = await prisma.order.findMany({
       where: whereClause,
       orderBy: { orderDate: "desc" },
-      include: { customer: true },
+      // --- PERUBAHAN UTAMA DI SINI ---
+      include: {
+        customer: true,
+        items: true, // Sertakan semua item dari setiap pesanan
+      },
     });
 
     const aggregates = await prisma.order.aggregate({
