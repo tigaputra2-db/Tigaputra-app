@@ -1,8 +1,8 @@
-// File: app/dashboard/layout.tsx (Versi Final dengan Logo)
+// File: app/dashboard/layout.tsx (Versi Diperbaiki untuk Hydration Error)
 
 "use client";
 
-import React, { useState, useEffect, JSX } from "react";
+import React, { useState, useEffect, JSX } from "react"; // Tambahkan useState dan useEffect
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Toaster } from "react-hot-toast";
@@ -164,8 +164,9 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const [isClient, setIsClient] = useState(false);
+  const [isClient, setIsClient] = useState(false); // <-- State baru
 
+  // Efek ini hanya berjalan di sisi klien setelah komponen dimuat
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -212,7 +213,6 @@ export default function DashboardLayout({
       <Toaster position="top-center" reverseOrder={false} />
 
       <aside className="w-64 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col">
-        {/* --- PERUBAHAN DI SINI --- */}
         <div className="h-16 flex items-center gap-3 px-6 border-b border-slate-200">
           <img
             src="https://wymrcotvuonhmltshbis.supabase.co/storage/v1/object/public/desain-pesanan//3plogoonly.png"
@@ -225,6 +225,8 @@ export default function DashboardLayout({
         <nav className="flex-grow p-4">
           <ul>
             {navLinks.map((link) => {
+              // --- PERBAIKAN LOGIKA DI SINI ---
+              // Kalkulasi isActive sekarang aman karena hanya berjalan setelah isClient true
               const isActive =
                 isClient &&
                 (pathname === link.href ||
