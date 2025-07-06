@@ -239,7 +239,7 @@ export default function DashboardLayout({
             alt="Logo Tigaputra"
             className="h-8 w-8.5 rounded-full"
           />
-          <h2 className="text-xl font-bold text-slate-800">Tigaputra</h2>
+          <h2 className="text-xl font-bold text-slate-800">Tigaputra App</h2>
         </div>
 
         <nav className="flex-grow p-4">
