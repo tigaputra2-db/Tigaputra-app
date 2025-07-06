@@ -236,11 +236,11 @@ export default function DashboardLayout({
       <aside className="w-64 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col">
         <div className="h-16 flex items-center gap-3 px-6 border-b border-slate-200">
           <img
-            src="https://placehold.co/40x40/007bff/white?text=TP"
+            src="https://wymrcotvuonhmltshbis.supabase.co/storage/v1/object/public/desain-pesanan//3plogoonly.png"
             alt="Logo Tiga Putra"
             className="h-8 w-8 rounded-full"
           />
-          <h2 className="text-xl font-bold text-slate-800">Tiga Putra</h2>
+          <h2 className="text-xl font-bold text-slate-800">Tigaputra App</h2>
         </div>
 
         <nav className="flex-grow p-4">
