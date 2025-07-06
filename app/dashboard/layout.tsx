@@ -1,4 +1,4 @@
-// File: app/dashboard/layout.tsx (Versi Final dengan Menu Pengeluaran)
+// File: app/dashboard/layout.tsx (Versi Diperbaiki untuk Hydration Error)
 
 "use client";
 
@@ -180,8 +180,9 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const [isClient, setIsClient] = useState(false);
+  const [isClient, setIsClient] = useState(false); // <-- State baru
 
+  // Efek ini hanya berjalan di sisi klien setelah komponen dimuat
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -214,7 +215,7 @@ export default function DashboardLayout({
       href: "/dashboard/pengeluaran",
       label: "Pengeluaran",
       icon: <PengeluaranIcon />,
-    }, // <-- MENU BARU
+    },
   ];
 
   const settingsLink: NavLink = {
@@ -233,19 +234,19 @@ export default function DashboardLayout({
       <Toaster position="top-center" reverseOrder={false} />
 
       <aside className="w-64 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col">
-        <div className="h-18 flex items-center gap-3 px-6 border-b border-slate-200">
+        <div className="h-16 flex items-center gap-3 px-6 border-b border-slate-200">
           <img
-            src="https://wymrcotvuonhmltshbis.supabase.co/storage/v1/object/public/desain-pesanan//3plogoonly.png"
-            alt="Logo Tigaputra"
-            className="h-8 w-8.5 rounded-full"
+            src="https://placehold.co/40x40/007bff/white?text=TP"
+            alt="Logo Tiga Putra"
+            className="h-8 w-8 rounded-full"
           />
-          <h2 className="text-xl font-bold text-slate-800">Tigaputra App</h2>
+          <h2 className="text-xl font-bold text-slate-800">Tiga Putra</h2>
         </div>
 
         <nav className="flex-grow p-4">
-          {/* Menu Utama */}
           <ul>
             {navLinks.map((link) => {
+              // --- PERBAIKAN LOGIKA DI SINI ---
               const isActive =
                 isClient &&
                 (pathname === link.href ||
