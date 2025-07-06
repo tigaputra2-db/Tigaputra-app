@@ -1,4 +1,4 @@
-// File: app/api/reports/materials/route.ts (Versi Diperbarui)
+// File: app/api/reports/materials/route.ts (Versi Final dengan Data Lengkap)
 
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
@@ -26,12 +26,13 @@ export async function GET(request: Request) {
           lte: new Date(endDate),
         },
       },
-      // Sertakan semua informasi terkait yang kita butuhkan
       include: {
         inventoryItem: {
           select: {
+            id: true,
             name: true,
             unit: true,
+            quantity: true, // Ambil sisa stok saat ini
           },
         },
         orderItem: {
@@ -46,11 +47,10 @@ export async function GET(request: Request) {
         },
       },
       orderBy: {
-        createdAt: "desc", // Tampilkan yang terbaru di atas
+        createdAt: "desc",
       },
     });
 
-    // Kita tidak lagi melakukan agregasi di sini, langsung kirim data rinciannya
     return NextResponse.json(usageLogs);
   } catch (error) {
     console.error("Gagal membuat laporan penggunaan bahan:", error);

@@ -1,9 +1,9 @@
-// File: app/lib/generateMaterialReportPDF.ts (Versi Final dengan Rekap Total)
+// File: app/lib/generateMaterialReportPDF.ts (Versi Final dengan Rekap & Sisa Stok)
 
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-// Definisikan tipe data baru
+// Tipe data baru yang lebih lengkap
 interface MaterialUsageDetail {
   id: string;
   createdAt: string;
@@ -11,6 +11,7 @@ interface MaterialUsageDetail {
   inventoryItem: {
     name: string;
     unit: string;
+    quantity: number; // Sisa stok
   };
   orderItem: {
     order: {
@@ -44,18 +45,16 @@ export const generateMaterialReportPDF = (
   doc.text(periodText, 105, 28, { align: "center" });
   let y = 35;
 
-  // --- PERUBAHAN DI SINI: Menambahkan Rekapitulasi Total ---
-  // 1. Hitung total penggunaan untuk setiap satuan (unit)
-  const summary: { [unit: string]: number } = {};
+  // --- REKAPITULASI TOTAL PENGGUNAAN (DIPERBAIKI) ---
+  const summary: { [name: string]: { total: number; unit: string } } = {};
   reportData.forEach((log) => {
-    const unit = log.inventoryItem.unit;
-    if (!summary[unit]) {
-      summary[unit] = 0;
+    const name = log.inventoryItem.name;
+    if (!summary[name]) {
+      summary[name] = { total: 0, unit: log.inventoryItem.unit };
     }
-    summary[unit] += log.quantityUsed;
+    summary[name].total += log.quantityUsed;
   });
 
-  // 2. Tampilkan rekapitulasi di PDF
   if (Object.keys(summary).length > 0) {
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
@@ -64,16 +63,26 @@ export const generateMaterialReportPDF = (
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
 
-    Object.entries(summary).forEach(([unit, total]) => {
-      doc.text(`- ${total.toLocaleString("id-ID")} ${unit}`, 20, y);
+    Object.entries(summary).forEach(([name, data]) => {
+      doc.text(
+        `- ${name}: ${data.total.toLocaleString("id-ID")} ${data.unit}`,
+        20,
+        y
+      );
       y += 6;
     });
   }
 
-  y += 5; // Beri sedikit spasi sebelum tabel
+  y += 5; // Spasi sebelum tabel
 
   // --- TABEL RINCIAN ---
-  const tableColumn = ["Tanggal", "Nama Bahan", "Jumlah", "Untuk Pesanan"];
+  const tableColumn = [
+    "Tanggal",
+    "Nama Bahan",
+    "Jumlah",
+    "Sisa Stok",
+    "Untuk Pesanan",
+  ];
   const tableRows: any[] = [];
 
   reportData.forEach((log) => {
@@ -81,6 +90,7 @@ export const generateMaterialReportPDF = (
       new Date(log.createdAt).toLocaleDateString("id-ID"),
       log.inventoryItem.name,
       `${log.quantityUsed} ${log.inventoryItem.unit}`,
+      `${log.inventoryItem.quantity} ${log.inventoryItem.unit}`,
       log.orderItem.order.orderNumber,
     ];
     tableRows.push(row);
@@ -89,7 +99,7 @@ export const generateMaterialReportPDF = (
   autoTable(doc, {
     head: [tableColumn],
     body: tableRows,
-    startY: y, // Gunakan posisi y yang sudah disesuaikan
+    startY: y,
     theme: "grid",
     headStyles: { fillColor: [41, 128, 185] },
   });
