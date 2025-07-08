@@ -10,7 +10,7 @@ overrides:
 
 dependencies:
   '@prisma/client':
-    specifier: 6.10.1
+    specifier: ^6.10.1
     version: 6.10.1(prisma@6.10.1)(typescript@5.7.2)
   '@supabase/supabase-js':
     specifier: ^2.50.2
