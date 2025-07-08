@@ -1,7 +1,7 @@
 // File: app/api/inventory/[id]/route.ts
 
 import { NextResponse } from "next/server";
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/app/lib/prisma'
 
 // Fungsi untuk MENGUPDATE (Edit) data item
 export async function PATCH(

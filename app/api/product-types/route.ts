@@ -1,7 +1,7 @@
 // File: app/api/product-types/route.ts
 
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/app/lib/prisma'
 
 // Fungsi untuk MENGAMBIL SEMUA Jenis Produk
 export async function GET() {

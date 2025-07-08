@@ -1,7 +1,7 @@
 // File: app/api/customers/[id]/route.ts
 
 import { NextResponse } from "next/server";
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/app/lib/prisma'
 
 // Fungsi untuk MENGAMBIL DETAIL SATU pelanggan
 export async function GET(

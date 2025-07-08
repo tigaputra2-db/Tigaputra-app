@@ -1,7 +1,7 @@
 // File: app/api/auth/login/route.ts
 
 import { NextResponse } from "next/server";
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/app/lib/prisma'
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 

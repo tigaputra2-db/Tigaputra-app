@@ -1,7 +1,7 @@
 // File: app/api/expenses/route.ts
 
 import { NextResponse } from "next/server";
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/app/lib/prisma'
 
 // Fungsi untuk MENGAMBIL SEMUA catatan pengeluaran
 export async function GET(request: Request) {

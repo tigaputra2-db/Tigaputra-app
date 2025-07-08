@@ -1,7 +1,7 @@
 // File: app/api/orders/route.ts (Versi Final & Paling Stabil)
 
 import { NextResponse } from "next/server";
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/app/lib/prisma'
 
 // Fungsi untuk mengambil semua pesanan (tidak berubah)
 export async function GET() {

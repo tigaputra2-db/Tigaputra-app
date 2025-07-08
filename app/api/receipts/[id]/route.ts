@@ -1,7 +1,7 @@
 // File: app/api/receipts/[id]/route.ts (Versi Final dengan CRUD)
 
 import { NextResponse } from "next/server";
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/app/lib/prisma'
 
 // Fungsi untuk MENGAMBIL DETAIL SATU faktur penerimaan
 export async function GET(

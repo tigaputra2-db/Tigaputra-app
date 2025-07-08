@@ -1,7 +1,7 @@
 // File: app/api/users/route.ts
 
 import { NextResponse } from "next/server";
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/app/lib/prisma'
 import { Role } from "@prisma/client"; // Pastikan Role sesuai dengan enum yang ada
 import { hash } from "bcryptjs";
 

@@ -1,7 +1,7 @@
 // File: app/api/field-definitions/route.ts
 
 import { NextResponse } from "next/server";
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/app/lib/prisma'
 
 // Fungsi untuk MEMBUAT Definisi Kolom BARU
 export async function POST(request: Request) {

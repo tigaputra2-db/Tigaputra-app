@@ -1,7 +1,7 @@
 // File: app/api/field-definitions/[id]/route.ts
 
 import { NextResponse } from "next/server";
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/app/lib/prisma'
 
 // Fungsi untuk MENGHAPUS satu definisi kolom berdasarkan ID
 export async function DELETE(

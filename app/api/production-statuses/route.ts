@@ -1,7 +1,7 @@
 // File: app/api/production-statuses/route.ts
 
 import { NextResponse } from "next/server";
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/app/lib/prisma'
 
 // Fungsi untuk MENGAMBIL SEMUA status produksi
 export async function GET() {
