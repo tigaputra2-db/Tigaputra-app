@@ -1,10 +1,10 @@
 // File: app/api/users/route.ts
 
 import { NextResponse } from "next/server";
-import { PrismaClient, Role } from "@prisma/client";
+import { prisma } from '@/lib/prisma'
+import { Role } from "@prisma/client"; // Pastikan Role sesuai dengan enum yang ada
 import { hash } from "bcryptjs";
 
-const prisma = new PrismaClient();
 
 // Fungsi untuk MENGAMBIL SEMUA data karyawan
 export async function GET() {

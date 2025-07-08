@@ -1,11 +1,9 @@
 // File: app/api/auth/login/route.ts
 
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from '@/lib/prisma'
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-
-const prisma = new PrismaClient();
 
 // Di App Router, kita menggunakan nama method HTTP (POST, GET, dll) sebagai nama fungsi
 export async function POST(request: Request) {

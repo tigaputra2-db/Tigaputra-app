@@ -1,9 +1,7 @@
 // File: app/api/field-definitions/[id]/route.ts
 
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma'
 
 // Fungsi untuk MENGHAPUS satu definisi kolom berdasarkan ID
 export async function DELETE(

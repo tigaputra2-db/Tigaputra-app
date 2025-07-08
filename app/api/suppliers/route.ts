@@ -1,9 +1,7 @@
 // File: app/api/suppliers/route.ts
 
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma'
 
 // Fungsi untuk MENGAMBIL SEMUA supplier
 export async function GET() {

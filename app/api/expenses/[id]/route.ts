@@ -1,9 +1,7 @@
 // File: app/api/expenses/[id]/route.ts
 
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma'
 
 // Fungsi untuk MENGUPDATE (Edit) catatan pengeluaran
 export async function PATCH(

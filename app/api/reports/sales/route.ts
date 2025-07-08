@@ -1,9 +1,7 @@
 // File: app/api/reports/sales/route.ts (Versi Diperbarui)
 
 import { NextResponse } from "next/server";
-import { PrismaClient, Prisma, PaymentStatus } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma'
 
 export async function GET(request: Request) {
   try {

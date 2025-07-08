@@ -1,9 +1,7 @@
 // File: app/api/material-usage/route.ts (Versi Diperbarui dengan Log Stok Kritis)
 
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma'
 
 const LOW_STOCK_THRESHOLD = 10; // Batas stok dianggap kritis. Anda bisa ubah angka ini.
 

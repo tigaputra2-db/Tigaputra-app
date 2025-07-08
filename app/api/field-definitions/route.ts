@@ -1,9 +1,7 @@
 // File: app/api/field-definitions/route.ts
 
 import { NextResponse } from "next/server";
-import { PrismaClient, FieldType } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma'
 
 // Fungsi untuk MEMBUAT Definisi Kolom BARU
 export async function POST(request: Request) {

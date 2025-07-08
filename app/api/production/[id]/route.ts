@@ -1,9 +1,7 @@
 // File: app/api/production/[id]/route.ts (Versi Diperbarui dengan Log Aktivitas)
 
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma'
 
 // Fungsi GET (tidak berubah)
 export async function GET(

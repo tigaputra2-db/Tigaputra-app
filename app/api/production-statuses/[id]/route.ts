@@ -1,9 +1,7 @@
 // File: app/api/production-statuses/[id]/route.ts
 
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma'
 
 // Fungsi untuk MENGHAPUS satu status produksi berdasarkan ID
 export async function DELETE(

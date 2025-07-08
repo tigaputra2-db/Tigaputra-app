@@ -1,9 +1,7 @@
 // File: app/api/product-types/[id]/route.ts
 
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma'
 
 // Fungsi untuk MENGAMBIL DETAIL SATU jenis produk
 export async function GET(

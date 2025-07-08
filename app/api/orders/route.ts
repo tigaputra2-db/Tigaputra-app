@@ -1,9 +1,7 @@
 // File: app/api/orders/route.ts (Versi Final & Paling Stabil)
 
 import { NextResponse } from "next/server";
-import { PrismaClient, PaymentStatus } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma'
 
 // Fungsi untuk mengambil semua pesanan (tidak berubah)
 export async function GET() {
