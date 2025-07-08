@@ -111,7 +111,15 @@ export default function DetailPesananPage() {
   const sisaPembayaran = order.totalAmount - order.paidAmount;
   const handlePrintInvoice = () => {
     if (order) {
-      generateInvoicePDF(order);
+      // Map items to include discount property (default 0 if not present)
+      const orderWithDiscount = {
+        ...order,
+        items: order.items.map((item) => ({
+          ...item,
+          discount: (item as any).discount ?? 0,
+        })),
+      };
+      generateInvoicePDF(orderWithDiscount);
     }
   };
 

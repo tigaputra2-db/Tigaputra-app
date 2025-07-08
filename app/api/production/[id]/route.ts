@@ -67,9 +67,23 @@ export async function PATCH(
     }
 
     // Gunakan transaksi untuk memastikan semua aksi berhasil
-    const updatedOrder = await prisma.$transaction(async (tx) => {
+    interface OrderItemSelection {
+      orderId: string;
+      order: {
+      orderNumber: string;
+      };
+    }
+
+    interface OrderUpdateResult {
+      id: string;
+      productionStatus: string;
+      orderNumber: string;
+      // Tambahkan field lain jika perlu
+    }
+
+    const updatedOrder: OrderUpdateResult = await prisma.$transaction(async (tx: PrismaClient): Promise<OrderUpdateResult> => {
       // 1. Cari OrderItem untuk mendapatkan id Pesanan (Order)
-      const orderItem = await tx.orderItem.findUnique({
+      const orderItem: OrderItemSelection | null = await tx.orderItem.findUnique({
         where: { id },
         select: { orderId: true, order: { select: { orderNumber: true } } },
       });
@@ -78,10 +92,10 @@ export async function PATCH(
         throw new Error("Item pekerjaan tidak ditemukan");
       }
 
-      // 2. Update status di tabel Pesanan (Order) utama
-      const order = await tx.order.update({
+      const order: OrderUpdateResult = await tx.order.update({
         where: { id: orderItem.orderId },
         data: { productionStatus: newStatus },
+        select: { id: true, productionStatus: true, orderNumber: true },
       });
 
       // 3. BUAT LOG AKTIVITAS BARU

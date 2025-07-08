@@ -1,7 +1,7 @@
 // File: app/api/field-definitions/route.ts
 
 import { NextResponse } from "next/server";
-import { PrismaClient, FieldType } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       data: {
         label,
         name,
-        type: type as FieldType,
+        type: type,
         options: options || [],
         placeholder,
         isRequired: isRequired || false,

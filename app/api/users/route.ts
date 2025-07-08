@@ -1,7 +1,7 @@
 // File: app/api/users/route.ts
 
 import { NextResponse } from "next/server";
-import { PrismaClient, Role } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
         name,
         email,
         hashedPassword,
-        role: role as Role, // Pastikan role sesuai dengan enum
+        role, // Pastikan role sesuai dengan enum
       },
     });
 

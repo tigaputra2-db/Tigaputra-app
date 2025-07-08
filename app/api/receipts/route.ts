@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
     // Prisma Transaction: Menjalankan beberapa aksi database sekaligus.
     // Jika salah satu gagal, semua akan dibatalkan (rollback). Ini menjaga data tetap konsisten.
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: { goodsReceipt: { create: (arg0: { data: { receiptNumber: any; supplierId: any; notes: any; items: any; }; }) => any; }; inventoryItem: { update: (arg0: { where: { id: any; }; data: { quantity: { increment: number; }; }; }) => any; }; }) => {
       // Aksi 1: Buat catatan GoodsReceipt (Faktur Penerimaan)
       const goodsReceipt = await tx.goodsReceipt.create({
         data: {

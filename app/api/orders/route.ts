@@ -1,7 +1,7 @@
 // File: app/api/orders/route.ts (Versi Final & Paling Stabil)
 
 import { NextResponse } from "next/server";
-import { PrismaClient, PaymentStatus } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -47,61 +47,89 @@ export async function POST(request: Request) {
     } = data;
 
     // Gunakan transaksi untuk semua operasi agar aman
-    const newOrder = await prisma.$transaction(async (tx) => {
+    interface OrderItemInput {
+      productType: string;
+      quantity?: number | string;
+      unitPrice?: number | string;
+      details?: Record<string, any>;
+    }
+
+    interface OrderInput {
+      customerName: string;
+      customerPhone?: string;
+      customerAddress?: string;
+      items?: OrderItemInput[];
+      dueDate?: string;
+      totalAmount?: number | string;
+      paidAmount?: number | string;
+      paymentStatus?: string;
+      paymentMethod?: string;
+      productionStatus?: string;
+      notes?: string;
+    }
+
+    interface OrderItemInput {
+      productType: string;
+      quantity?: number | string;
+      unitPrice?: number | string;
+      details?: Record<string, any>;
+    }
+
+    const newOrder = await prisma.$transaction(async (tx: PrismaClient) => {
       // 1. Cari atau buat pelanggan baru
       const customer = await tx.customer.upsert({
-        where: { phone: customerPhone || "NO_PHONE_" + Date.now() },
-        update: { name: customerName, address: customerAddress },
-        create: {
-          name: customerName,
-          phone: customerPhone,
-          address: customerAddress,
-        },
+      where: { phone: customerPhone || "NO_PHONE_" + Date.now() },
+      update: { name: customerName, address: customerAddress },
+      create: {
+        name: customerName,
+        phone: customerPhone,
+        address: customerAddress,
+      },
       });
 
       // 2. Buat Nomor Pesanan unik
-      const today = new Date();
-      const datePart = today.toISOString().slice(2, 10).replace(/-/g, "");
-      const randomPart = Math.floor(100 + Math.random() * 900);
-      const orderNumber = `TIGA-${datePart}-${randomPart}`;
+      const today: Date = new Date();
+      const datePart: string = today.toISOString().slice(2, 10).replace(/-/g, "");
+      const randomPart: number = Math.floor(100 + Math.random() * 900);
+      const orderNumber: string = `TIGA-${datePart}-${randomPart}`;
 
       // 3. Buat data Pesanan (Order) utama
       const createdOrder = await tx.order.create({
-        data: {
-          orderNumber: orderNumber,
-          customerId: customer.id,
-          dueDate: dueDate ? new Date(dueDate) : null,
-          totalAmount: parseFloat(totalAmount || 0),
-          paidAmount: parseFloat(paidAmount || 0),
-          paymentStatus: paymentStatus as PaymentStatus, // Casting tipe data
-          paymentMethod: paymentMethod,
-          productionStatus: productionStatus || "Antrian",
-          notes: notes,
-        },
+      data: {
+        orderNumber: orderNumber,
+        customerId: customer.id,
+        dueDate: dueDate ? new Date(dueDate) : null,
+        totalAmount: parseFloat(totalAmount || 0),
+        paidAmount: parseFloat(paidAmount || 0),
+        paymentStatus: paymentStatus as string, // Casting tipe data
+        paymentMethod: paymentMethod,
+        productionStatus: productionStatus || "Antrian",
+        notes: notes,
+      },
       });
 
       // 4. Buat item-item pesanan yang terkait
       if (items && Array.isArray(items)) {
-        for (const item of items) {
-          await tx.orderItem.create({
-            data: {
-              orderId: createdOrder.id,
-              productType: item.productType,
-              quantity: parseFloat(item.quantity || 1),
-              unitPrice: parseFloat(item.unitPrice || 0),
-              details: item.details || {},
-            },
-          });
-        }
+      for (const item of items as OrderItemInput[]) {
+        await tx.orderItem.create({
+        data: {
+          orderId: createdOrder.id,
+          productType: item.productType,
+          quantity: parseFloat(item.quantity as string ?? "1"),
+          unitPrice: parseFloat(item.unitPrice as string ?? "0"),
+          details: item.details || {},
+        },
+        });
+      }
       }
 
       // 5. BUAT LOG AKTIVITAS BARU
       await tx.activityLog.create({
-        data: {
-          type: "PESANAN",
-          message: `Pesanan baru #${orderNumber} telah dibuat untuk ${customer.name}.`,
-          link: `/dashboard/pesanan/${createdOrder.id}`,
-        },
+      data: {
+        type: "PESANAN",
+        message: `Pesanan baru #${orderNumber} telah dibuat untuk ${customer.name}.`,
+        link: `/dashboard/pesanan/${createdOrder.id}`,
+      },
       });
 
       return createdOrder;
