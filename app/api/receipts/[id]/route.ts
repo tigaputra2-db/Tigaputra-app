@@ -90,37 +90,24 @@ export async function DELETE(
 ) {
   const id = params.id;
   try {
-    interface ReceiptItem {
-      id: string;
-      inventoryItemId: string;
-      quantity: number;
-      [key: string]: any;
-    }
-
-    interface GoodsReceipt {
-      id: string;
-      items: ReceiptItem[];
-      [key: string]: any;
-    }
-
-    const result = await prisma.$transaction(async (tx: PrismaClient) => {
+    const result = await prisma.$transaction(async (tx) => {
       // 1. Ambil data faktur yang akan dihapus
-      const receiptToDelete: GoodsReceipt | null = await tx.goodsReceipt.findUnique({
-      where: { id },
+      const receiptToDelete = await tx.goodsReceipt.findUnique({
+        where: { id },
       });
       if (!receiptToDelete)
-      throw new Error("Faktur tidak ditemukan untuk dihapus.");
+        throw new Error("Faktur tidak ditemukan untuk dihapus.");
 
       // 2. Kembalikan stok untuk setiap item di faktur
-      for (const item of receiptToDelete.items as ReceiptItem[]) {
-      await tx.inventoryItem.update({
-        where: { id: item.inventoryItemId },
-        data: {
-        quantity: {
-          decrement: Number(item.quantity), // Kurangi stok yang dulu ditambahkan
-        },
-        },
-      });
+      for (const item of receiptToDelete.items as any[]) {
+        await tx.inventoryItem.update({
+          where: { id: item.inventoryItemId },
+          data: {
+            quantity: {
+              decrement: Number(item.quantity), // Kurangi stok yang dulu ditambahkan
+            },
+          },
+        });
       }
 
       // 3. Hapus faktur itu sendiri

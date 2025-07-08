@@ -27,78 +27,47 @@ export async function POST(request: Request) {
       );
     }
 
-    interface MaterialUsageRequest {
-      orderItemId: string;
-      inventoryItemId: string;
-      quantityUsed: number;
-      loggedById: string;
-    }
-
-    interface InventoryItem {
-      id: string;
-      name: string;
-      quantity: number;
-      unit: string;
-    }
-
-    interface MaterialUsageLog {
-      id: string;
-      orderItemId: string;
-      inventoryItemId: string;
-      quantityUsed: number;
-      loggedById: string;
-      createdAt: Date;
-    }
-
-    interface ActivityLog {
-      id: string;
-      type: string;
-      message: string;
-      link: string;
-      createdAt: Date;
-    }
-
-    const result: MaterialUsageLog = await prisma.$transaction(async (tx: PrismaClient) => {
+    const result = await prisma.$transaction(async (tx) => {
       // 1. Cek ketersediaan stok
-      const stockItem: InventoryItem | null = await tx.inventoryItem.findUnique({
-      where: { id: inventoryItemId },
+      const stockItem = await tx.inventoryItem.findUnique({
+        where: { id: inventoryItemId },
       });
 
       if (!stockItem || stockItem.quantity < quantity) {
-      throw new Error(
-        `Stok untuk "${stockItem?.name || "barang"}" tidak mencukupi.`
-      );
+        throw new Error(
+          `Stok untuk "${stockItem?.name || "barang"}" tidak mencukupi.`
+        );
       }
 
       // 2. Kurangi stok di inventaris
-      const updatedStockItem: InventoryItem = await tx.inventoryItem.update({
-      where: { id: inventoryItemId },
-      data: {
-        quantity: {
-        decrement: quantity,
+      const updatedStockItem = await tx.inventoryItem.update({
+        where: { id: inventoryItemId },
+        data: {
+          quantity: {
+            decrement: quantity,
+          },
         },
-      },
       });
 
       // 3. Catat log penggunaan bahan
-      const newLog: MaterialUsageLog = await tx.materialUsageLog.create({
-      data: {
-        orderItemId,
-        inventoryItemId,
-        quantityUsed: quantity,
-        loggedById,
-      },
+      const newLog = await tx.materialUsageLog.create({
+        data: {
+          orderItemId,
+          inventoryItemId,
+          quantityUsed: quantity,
+          loggedById,
+        },
       });
 
       // --- 4. LOGIKA BARU: Cek jika stok menjadi kritis ---
       if (updatedStockItem.quantity < LOW_STOCK_THRESHOLD) {
-      await tx.activityLog.create({
-        data: {
-        type: "STOK",
-        message: `Stok untuk "${updatedStockItem.name}" menipis. Sisa: ${updatedStockItem.quantity} ${updatedStockItem.unit}.`,
-        link: `/dashboard/inventaris`,
-        },
-      });
+        await tx.activityLog.create({
+          data: {
+            type: "STOK",
+            message: `Stok untuk "${updatedStockItem.name}" menipis. Sisa: ${updatedStockItem.quantity} ${updatedStockItem.unit}.`,
+            link: `/dashboard/inventaris`,
+          },
+        });
       }
 
       return newLog;

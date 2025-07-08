@@ -1,7 +1,7 @@
 // File: app/api/reports/sales/route.ts (Versi Diperbarui)
 
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma, PaymentStatus } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
     }
 
     // Membangun klausa 'where' secara dinamis
-    let whereClause: any = {
+    let whereClause: Prisma.OrderWhereInput = {
       orderDate: {
         gte: new Date(startDate),
         lte: new Date(endDate),
@@ -30,7 +30,11 @@ export async function GET(request: Request) {
     };
 
     if (paymentStatus && paymentStatus !== "semua") {
-      whereClause.paymentStatus = paymentStatus;
+      if (
+        Object.values(PaymentStatus).includes(paymentStatus as PaymentStatus)
+      ) {
+        whereClause.paymentStatus = paymentStatus as PaymentStatus;
+      }
     }
 
     if (productType && productType !== "semua") {
