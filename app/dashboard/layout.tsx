@@ -237,7 +237,7 @@ export default function DashboardLayout({
       <aside className="w-64 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col">
         <div className="h-16 flex items-center gap-3 px-6 border-b border-slate-200">
           <Image
-            src="https://wymrcotvuonhmltshbis.supabase.co/storage/v1/object/public/desain-pesanan//3plogoonly.png"
+            src="@/public/img/3p logo.png"
             alt="Logo Tiga Putra"
             width={34}
             height={34}
