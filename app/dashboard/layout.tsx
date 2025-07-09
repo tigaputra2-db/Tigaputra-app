@@ -240,7 +240,7 @@ export default function DashboardLayout({
             src="/3plogoonly.png"
             alt="Logo Tiga Putra"
             width={34}
-            height={34}
+            height={40}
             className="h-8 w-8.5 rounded-full"
             priority
           />
