@@ -1,7 +1,12 @@
 // File: app/api/dashboard/summary/route.ts (Versi Diperbarui)
 
 import { NextResponse } from "next/server";
-import { prisma } from '@/app/lib/prisma'
+import { prisma } from '@/app/lib/prisma';
+
+// Ensure prisma is properly initialized and models exist in your schema:
+// - order
+// - inventoryItem
+// - activityLog
 
 export async function GET() {
   try {

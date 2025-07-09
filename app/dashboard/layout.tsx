@@ -6,6 +6,7 @@ import React, { useState, useEffect, JSX } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Toaster } from "react-hot-toast";
+import Image from "next/image";
 
 // Definisikan tipe untuk setiap link navigasi
 type NavLink = {
@@ -235,10 +236,13 @@ export default function DashboardLayout({
 
       <aside className="w-64 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col">
         <div className="h-16 flex items-center gap-3 px-6 border-b border-slate-200">
-          <img
+          <Image
             src="https://wymrcotvuonhmltshbis.supabase.co/storage/v1/object/public/desain-pesanan//3plogoonly.png"
             alt="Logo Tiga Putra"
+            width={34}
+            height={34}
             className="h-8 w-8.5 rounded-full"
+            priority
           />
           <h2 className="text-xl font-bold text-slate-800">Tigaputra App</h2>
         </div>
